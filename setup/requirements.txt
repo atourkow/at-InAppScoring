@@ -1,0 +1,8 @@
+cassandra-driver
+#flask
+prettytable
+faker # For fake data
+gevent
+ipdb
+ipython
+ipython-extensions
