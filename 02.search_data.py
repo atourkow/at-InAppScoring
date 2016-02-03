@@ -32,7 +32,6 @@ if not isinstance( top_max, ( int, long ) ):
 # "SoftLayer, GSM, GitHub, Infrastructure Performance Layer, Website Performance"
 topics = [x.strip() for x in sys.argv[2].split(',')]
 
-
 # Load our config
 config = Config()
 # Connect to Cassandra
@@ -48,7 +47,6 @@ pool = Pool(20)
 topic_scores = pool.map( lambda x: TopicScores.get(topic=x), topics)
 topics_map = dict( [(x.topic, x.score) for x in topic_scores] )
 #sys.exit()
-
 
 # look up all topics
 #topics_map = {"GSM": .9, "GitHub": .5, 'Windows 7': .1, 'ITIL': .2, 'Grid Computing': .3, 'Fortinet': .4, 'Server Power': .6}
@@ -79,12 +77,10 @@ experts = pool.map( lambda x: Experts.get(expert_id=x), [expert_id for expert_id
 pt = PrettyTable(['ID', 'Name', 'City', 'zip', 'Lat Lon', 'Score'])
 pt.align = "l"
 
-list_of_experts = []
 for ex in experts:
     pt.add_row([ex.expert_id, ex.name, ex.city, ex.zip, ex.lat_lon, expert_scores[ex.expert_id]])
 
 print pt
-
 
 
 total_time = time.time() - start
@@ -93,3 +89,17 @@ print "Total Users Sorted: {}".format(len(expert_scores))
 print "Top n returned in : {} | {}s".format(top_max, total_time)
 print "Mem Used          : {}".format(resource.getrusage(resource.RUSAGE_SELF).ru_maxrss / 1000)
 print ""
+
+headers = ['Max Top Count', 'Topics Searched', 'Users Sorted', 'Time']
+out = [top_max, len(topics), len(expert_scores), total_time]
+pt = PrettyTable(headers)
+pt.add_row(out)
+pt.align = "l"
+print pt
+
+print "\t".join(map(str,out))
+
+# Output to CSV
+f_out = open('results_search.txt','a')
+f_out.write("\t".join(map(str,out)) + "\n")
+f_out.close()

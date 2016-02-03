@@ -11,16 +11,18 @@ from _config import Config
 from _models import *
 
 import random
+from prettytable import PrettyTable
 
 # Command line arguements
-if len(sys.argv) < 3:
+if len(sys.argv) < 4:
     print "Usage:"
-    print "01.generate_data.py n_experts n_topics_per_expert"
+    print "01.generate_data.py n_experts_start n_experts_stop n_topics_per_expert"
     print ""
     sys.exit()
 
-expert_total = int(sys.argv[1])
-topic_max_per_expert = int(sys.argv[2])
+expert_start = int(sys.argv[1])
+expert_total = int(sys.argv[2])
+topic_max_per_expert = int(sys.argv[3])
 
 # Load our config
 config = Config()
@@ -62,12 +64,9 @@ print "Mem Used   : {}".format(resource.getrusage(resource.RUSAGE_SELF).ru_maxrs
 print ""
 
 # For N number of experts randomly assign to topics, an expert can be in more than one topic
-#expert_total = 100000
-#topic_max_per_expert = 20
-# Loop though experts
-expert_count = 0
+expert_count = expert_start
 start = time.time()
-total = 0
+total_records = 0
 
 while expert_count < expert_total:
     expert_count += 1
@@ -81,7 +80,7 @@ while expert_count < expert_total:
     topic_count = 0
     topic_list = []
     while topic_count < topic_max:
-        total += 1
+        total_records += 1
         topic_count += 1
         topic = random.choice(topics)
 
@@ -98,11 +97,25 @@ while expert_count < expert_total:
     #Put the expert data in
     Experts.create(expert_id=expert_count, name=fake.name(), city=metaCity, zip=metaZip, lat_lon=metaLatLon, topics=topic_list)
 
-
 total_time = time.time() - start
 print "\n"
-print "Records    : {}".format(total)
-print "Total Time : {}".format(total_time)
-print "Rec per Sec: {}/s".format(float(total) / total_time)
-print "Mem Used   : {}".format(resource.getrusage(resource.RUSAGE_SELF).ru_maxrss / 1000)
+print "Experts Start: {}".format(expert_start)
+print "Experts Stop : {}".format(expert_total)
+print "Records      : {}".format(total_records)
+print "Total Time   : {}".format(total_time)
+print "Rec per Sec  : {}/s".format(float(total_records) / total_time)
+print "Mem Used     : {}".format(resource.getrusage(resource.RUSAGE_SELF).ru_maxrss / 1000)
 print ""
+
+out = [expert_start, expert_count, topic_max_per_expert, total_records]
+pt = PrettyTable(['Experts Start', 'Total Experts', 'Max Topics per Expert', 'Total Records'])
+pt.add_row(out)
+pt.align = "l"
+print pt
+
+f_out.write("\t".join(map(str,out)) + "\n")
+
+# Output to CSV
+f_out = open('results_generator.txt','a')
+f_out.write("\t".join(map(str,out)) + "\n")
+f_out.close()
